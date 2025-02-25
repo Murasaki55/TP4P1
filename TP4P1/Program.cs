@@ -1,4 +1,11 @@
+
+using Microsoft.EntityFrameworkCore;
+using TP4P1.Models.EntityFramework;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<FilmRatingsDBContext>(options =>
+options.UseNpgsql(builder.Configuration.GetConnectionString("FilmRatingsDBContext")));
 
 // Add services to the container.
 

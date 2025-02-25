@@ -34,6 +34,7 @@ namespace TP4P1.Models.EntityFramework
         [Required]
         [Column("utl_mail")]
         [EmailAddress]
+        [RegularExpression(@"^(([^<>()\[\]\\.,;:\s@""]+(\.[^<>()\[\]\\.,;:\s@""]+)*)|("".+""))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", ErrorMessage = "Le mail n'est pas conforme")]
         [StringLength(100, MinimumLength = 6, ErrorMessage = "La longueur d’un email doit être comprise entre 6 et 100 caractères.")]
         public string Mail { get; set; } = null!;
 

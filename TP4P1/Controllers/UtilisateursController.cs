@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,17 @@ using TP4P1.Models.EntityFramework;
 namespace TP4P1.Controllers
 {
     [Route("api/[controller]")]
+    public class myApiController : Controller
+    {
+        [HttpGet]
+        public string GetInfo()
+        {
+            return "Information";
+        }
+    }
+    [Route("api/[controller]/[action]")]
     [ApiController]
+
     public class UtilisateursController : ControllerBase
     {
         private readonly FilmRatingsDBContext _context;
@@ -22,6 +33,7 @@ namespace TP4P1.Controllers
 
         // GET: api/Utilisateurs
         [HttpGet]
+        [ActionName("GetUtilisateurs")]
         public async Task<ActionResult<IEnumerable<Utilisateur>>> GetUtilisateurs()
         {
             return await _context.Utilisateurs.ToListAsync();
@@ -29,9 +41,24 @@ namespace TP4P1.Controllers
 
         // GET: api/Utilisateurs/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Utilisateur>> GetUtilisateur(int id)
+        [ActionName("GetUtilisateurById")]
+        public async Task<ActionResult<Utilisateur>> GetUtilisateurByID(int id)
         {
             var utilisateur = await _context.Utilisateurs.FindAsync(id);
+
+            if (utilisateur == null)
+            {
+                return NotFound();
+            }
+
+            return utilisateur;
+        }
+
+        [HttpGet("{email}")]
+        [ActionName("GetUtilisateursByEmail")]
+        public async Task<ActionResult<Utilisateur>> GetUtilisateurByEmail(string email)
+        {
+            var utilisateur = await _context.Utilisateurs.FirstOrDefaultAsync(u => u.Mail == email);
 
             if (utilisateur == null)
             {
