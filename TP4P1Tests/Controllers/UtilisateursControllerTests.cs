@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TP4P1.Models.EntityFramework;
 using Npgsql.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace TP4P1.Controllers.Tests
 {
@@ -15,10 +17,11 @@ namespace TP4P1.Controllers.Tests
     public class UtilisateursControllerTests
     {
         public UtilisateursController controller { get; set; }
+        public FilmRatingsDBContext context { get; set; }
         public UtilisateursControllerTests()
         {
             var builder = new DbContextOptionsBuilder<FilmRatingsDBContext>().UseNpgsql("Server=localhost;port=5432;Database=FilmsRatingsDB; uid=postgres; password=postgres;");
-            FilmRatingsDBContext context = new FilmRatingsDBContext(builder.Options);
+            context = new FilmRatingsDBContext(builder.Options);
             controller = new UtilisateursController(context);
         }
 
@@ -32,39 +35,238 @@ namespace TP4P1.Controllers.Tests
         public void GetUtilisateursTest()
         {
             var result = controller.GetUtilisateurs().Result.Value.ToList();
-            List<Utilisateur> UtilisateurList = new List<Utilisateur>() { new Utilisateur(1,"Calida","Lilley","0653930778","clilleymd@last.fm","Toto12345678!","Impasse des bergeronnettes", "74200", "Allinges", "France", (float)46.344795, (float)6.4885845, new DateTime(2025,02,25), []), new Utilisateur(2, "Gwendolin", "Dominguez", "0724970555", "gdominguez0@washingtonpost.com", "Toto12345678!", "Chemin de gom", "73420", "Voglans", "France", (float)45.622154, (float)5.8853216, new DateTime(2025-02-25), []), new Utilisateur(3, "Randolph", "Richings", "0630271158", "rrichings1@naver.com", "Toto12345678!", "Route des charmottes d'en bas", "74890", "Bons-en-Chablais", "France", (float)46.25732, (float)6.367676, new DateTime(2025-02-25), []) };
+            List<Utilisateur> utilisateurs = context.Utilisateurs.ToList();
 
-            CollectionAssert.AreEqual(result.Where(s => s.UtilisateurId <= 3).ToList(), UtilisateurList);
+            Assert.IsInstanceOfType(result, typeof(List<Utilisateur>));
+            CollectionAssert.AreEqual(result.ToList(), utilisateurs);
         }
 
         [TestMethod()]
-        public void GetUtilisateurByIDTest()
+        public void GetUtilisateurByIDTestOK()
         {
+            var result = controller.GetUtilisateurByID(1).Result.Value;
+            Utilisateur utilisateur = context.Utilisateurs.Where(c => c.UtilisateurId == 1).FirstOrDefault();
 
+
+            Assert.IsInstanceOfType(result, typeof(Utilisateur));
+            Assert.AreEqual(result, utilisateur);
         }
 
         [TestMethod()]
-        public void GetUtilisateurByEmailTest()
+        public void GetUtilisateurByIDTestNonOK()
         {
+            var result = controller.GetUtilisateurByID(10000).Result;
 
+
+            Assert.IsInstanceOfType(result, typeof(ActionResult<Utilisateur>));
+            Assert.IsNull(result.Value);
         }
 
         [TestMethod()]
-        public void PutUtilisateurTest()
+        public void GetUtilisateurByEmailTestOK()
         {
+            var result = controller.GetUtilisateurByEmail("clilleymd@last.fm").Result.Value;
+            Utilisateur utilisateur = context.Utilisateurs.Where(c => c.UtilisateurId == 1).FirstOrDefault();
 
+
+            Assert.IsInstanceOfType(result, typeof(Utilisateur));
+            Assert.AreEqual(result, utilisateur);
         }
 
         [TestMethod()]
-        public void PostUtilisateurTest()
+        public void GetUtilisateurByEmailTestNonOK()
         {
+            var result = controller.GetUtilisateurByEmail("durand").Result;
 
+
+            Assert.IsInstanceOfType(result, typeof(ActionResult<Utilisateur>));
+            Assert.IsNull(result.Value);
+        }
+
+        [TestMethod()]
+        public void PutUtilisateurTestNoContent()
+        {
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                UtilisateurId = 15,
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            // Act
+            var result = controller.PutUtilisateur(15,userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        }
+
+        [TestMethod()]
+        public void PutUtilisateurTestBadRequest()
+        {
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                UtilisateurId = 15,
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            // Act
+            var result = controller.PutUtilisateur(1000000000, userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+        }
+
+        [TestMethod()]
+        public void PutUtilisateurTestNotFound()
+        {
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                UtilisateurId = 1000000000,
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            // Act
+            var result = controller.PutUtilisateur(1000000000, userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        }
+
+        [TestMethod()]
+        public void PostUtilisateurTestConforme()
+        {
+            // Arrange
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            // Act
+            var result = controller.PostUtilisateur(userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
+            // Assert
+            Utilisateur? userRecupere = context.Utilisateurs.Where(u => u.Mail.ToUpper() == userAtester.Mail.ToUpper()).FirstOrDefault(); // On récupère l'utilisateur créé directement dans la BD grace à son mailunique
+            // On ne connait pas l'ID de l’utilisateur envoyé car numéro automatique.
+            // Du coup, on récupère l'ID de celui récupéré et on compare ensuite les 2 users
+            userAtester.UtilisateurId = userRecupere.UtilisateurId;
+            Assert.AreEqual(userRecupere, userAtester, "Utilisateurs pas identiques");
+        }
+
+        [TestMethod()]
+        public void PostUtilisateurTestNonConforme()
+        {
+            // Arrange
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre,
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            // Act
+            var result = controller.PostUtilisateur(userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
+            // Assert
+            Utilisateur? userRecupere = context.Utilisateurs.Where(u => u.Mail.ToUpper() == userAtester.Mail.ToUpper()).FirstOrDefault(); // On récupère l'utilisateur créé directement dans la BD grace à son mailunique
+            // On ne connait pas l'ID de l’utilisateur envoyé car numéro automatique.
+            // Du coup, on récupère l'ID de celui récupéré et on compare ensuite les 2 users
+            userAtester.UtilisateurId = userRecupere.UtilisateurId;
+            Assert.IsInstanceOfType(result, typeof(ActionResult<Utilisateur>));
+            Assert.AreEqual(userRecupere, userAtester, "Utilisateurs pas identiques");
         }
 
         [TestMethod()]
         public void DeleteUtilisateurTest()
         {
+            Random rnd = new Random();
+            int chiffre = rnd.Next(1, 1000000000);
+            // Le mail doit être unique donc 2 possibilités :
+            // 1. on s'arrange pour que le mail soit unique en concaténant un random ou un timestamp
+            // 2. On supprime le user après l'avoir créé. Dans ce cas, nous avons besoin d'appeler la méthode DELETE de l’API ou remove du DbSet.
+            Utilisateur userAtester = new Utilisateur()
+            {
+                Nom = "MACHIN",
+                Prenom = "Luc",
+                Mobile = "0606070809",
+                Mail = "machin" + chiffre + "@gmail.com",
+                Pwd = "Toto1234!",
+                Rue = "Chemin de Bellevue",
+                CodePostal = "74940",
+                Ville = "Annecy-le-Vieux",
+                Pays = "France",
+                Latitude = null,
+                Longitude = null
+            };
+            context.Utilisateurs.Add(userAtester);
+            context.SaveChanges();
+            Utilisateur? userRecupere = context.Utilisateurs.Where(u => u.Mail.ToUpper() == userAtester.Mail.ToUpper()).FirstOrDefault();
+            var result = controller.DeleteUtilisateur(userRecupere.UtilisateurId).Result;
+            Utilisateur utilisateur = context.Utilisateurs.Where(c => c.UtilisateurId == userRecupere.UtilisateurId).FirstOrDefault();
 
+            Assert.IsInstanceOfType(result, typeof(NoContentResult));
+            Assert.IsNull(utilisateur);
         }
     }
 }
