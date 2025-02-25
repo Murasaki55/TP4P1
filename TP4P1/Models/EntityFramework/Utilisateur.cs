@@ -14,6 +14,24 @@ namespace TP4P1.Models.EntityFramework
             NotesUtilisateur = new HashSet<Notation>();
         }
 
+        public Utilisateur(int utilisateurId, string? nom, string? prenom, string? mobile, string mail, string pwd, string? rue, string? codePostal, string? ville, string? pays, float? latitude, float? longitude, DateTime dateCreation, ICollection<Notation> notesUtilisateur)
+        {
+            UtilisateurId = utilisateurId;
+            Nom = nom;
+            Prenom = prenom;
+            Mobile = mobile;
+            Mail = mail;
+            Pwd = pwd;
+            Rue = rue;
+            CodePostal = codePostal;
+            Ville = ville;
+            Pays = pays;
+            Latitude = latitude;
+            Longitude = longitude;
+            DateCreation = dateCreation;
+            NotesUtilisateur = notesUtilisateur;
+        }
+
         [Key]
         [Column("utl_id")]
         public int UtilisateurId { get; set; }
