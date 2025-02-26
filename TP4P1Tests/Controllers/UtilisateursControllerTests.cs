@@ -10,6 +10,8 @@ using TP4P1.Models.EntityFramework;
 using Npgsql.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using TP4P1.Models.Repository;
+using TP4P1.Models.DataManager;
 
 namespace TP4P1.Controllers.Tests
 {
@@ -18,11 +20,15 @@ namespace TP4P1.Controllers.Tests
     {
         public UtilisateursController controller { get; set; }
         public FilmRatingsDBContext context { get; set; }
+
+        private IDataRepository<Utilisateur> dataRepository;
+
         public UtilisateursControllerTests()
         {
             var builder = new DbContextOptionsBuilder<FilmRatingsDBContext>().UseNpgsql("Server=localhost;port=5432;Database=FilmsRatingsDB; uid=postgres; password=postgres;");
             context = new FilmRatingsDBContext(builder.Options);
-            controller = new UtilisateursController(context);
+            dataRepository = new UtilisateurManager(context);
+            controller = new UtilisateursController(dataRepository);
         }
 
         [TestMethod()]
@@ -196,6 +202,7 @@ namespace TP4P1.Controllers.Tests
             // Act
             var result = controller.PostUtilisateur(userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
             // Assert
+            Thread.Sleep(1000);
             Utilisateur? userRecupere = context.Utilisateurs.Where(u => u.Mail.ToUpper() == userAtester.Mail.ToUpper()).FirstOrDefault(); // On récupère l'utilisateur créé directement dans la BD grace à son mailunique
             // On ne connait pas l'ID de l’utilisateur envoyé car numéro automatique.
             // Du coup, on récupère l'ID de celui récupéré et on compare ensuite les 2 users
@@ -229,6 +236,7 @@ namespace TP4P1.Controllers.Tests
             // Act
             var result = controller.PostUtilisateur(userAtester).Result; // .Result pour appeler la méthode async de manière synchrone, afin d'attendre l’ajout
             // Assert
+            Thread.Sleep(1000);
             Utilisateur? userRecupere = context.Utilisateurs.Where(u => u.Mail.ToUpper() == userAtester.Mail.ToUpper()).FirstOrDefault(); // On récupère l'utilisateur créé directement dans la BD grace à son mailunique
             // On ne connait pas l'ID de l’utilisateur envoyé car numéro automatique.
             // Du coup, on récupère l'ID de celui récupéré et on compare ensuite les 2 users
